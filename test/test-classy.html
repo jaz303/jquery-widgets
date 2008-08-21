@@ -1,0 +1,96 @@
+<html>
+  <head>
+    <title>Tests</title>
+    <script type='text/javascript' src='jquery-1.2.3.min.js'></script>
+    <script type='text/javascript' src='../src/classy.js'></script>
+    <script type='text/javascript' src='../src/jquery.widgets.js'></script>
+    <script type='text/javascript'>
+      
+      //
+      // here's the scenario
+      
+      Base.extend("com.onehackoranother.Person", {
+        init: function(name) { this.name = name; },
+        greet: function() { return "Hello, my name is " + this.getName(); },
+        getName: function() { return this.name; },
+        getSalary: function() { return 10000 }
+      });
+      
+      com.onehackoranother.Person.extend("com.onehackoranother.Manager", {
+        getName: function() { return "Mr. " + this.super(arguments.callee, "getName"); }
+      });
+      
+      com.onehackoranother.Manager.extend("Uber", {
+        getSalary: function() { return this.super(arguments.callee, 'getSalary') * 2; }
+      })
+      
+      //
+      // Here are the tests
+      
+      function testConstructorIsRun() {
+        var p = com.onehackoranother.Person.new("jim");
+        assertEquals("jim", p.name);
+      }
+      
+      function testStandardGetterWorks() {
+        var p = com.onehackoranother.Person.new("jim");
+        assertEquals("jim", p.getName());
+      }
+      
+      function testSubclassGetterWorks() {
+        var p = com.onehackoranother.Manager.new("jim");
+        assertEquals("Mr. jim", p.getName());
+      }
+      
+      function testGreeterOnSuperclassCallsGetNameOnSubclass() {
+        var p = com.onehackoranother.Manager.new("jim");
+        assertEquals("Hello, my name is Mr. jim", p.greet());
+      }
+      
+      function testRespondTo() {
+        var m = com.onehackoranother.Manager.new("jim");
+        assert(m.respondTo('getName'));
+        assert(m.respondTo('greet'));
+        assert(m.respondTo('getSalary'));
+        assert(!m.respondTo('wtf'));
+      }
+      
+      function testClassIsReportedCorrectly() {
+        var p = com.onehackoranother.Person.new("jim");
+        assertEquals(com.onehackoranother.Person, p.class);
+        var m = com.onehackoranother.Manager.new("jim");
+        assertEquals(com.onehackoranother.Manager, m.class);
+      }
+      
+      function testSuperclassIsReportedCorrectly() {
+        assertEquals(com.onehackoranother.Person, com.onehackoranother.Manager.superClass);
+      }
+      
+      function testSuperCallsWorkWhenGenerationGapExists() {
+        u = Uber.new("me");
+        assertEquals(com.onehackoranother.Manager, u.class.superClass); // sanity...
+        assertEquals(20000, u.getSalary());
+      }
+      
+      function assert(a) {
+        if (!a) {
+          alert("FAIL!");
+        }
+      }
+      
+      function assertEquals(a, b) {
+        assert(a == b);
+      }
+      
+      for (var k in window) {
+        var v = window[k];
+        if (typeof v == 'function' && k.match(/^test/)) {
+          v();
+        }
+      }
+    
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
