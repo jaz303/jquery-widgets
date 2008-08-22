@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <title>Tests</title>
+    <script type='text/javascript' src='jquery-1.2.3.min.js'></script>
+    <script type='text/javascript' src='../src/classy.js'></script>
+    <script type='text/javascript' src='../src/jquery.widgets.js'></script>
+    <script type='text/javascript'>
+      
+      //
+      // here's the scenario
+      
+      Widget.extend("ohoa.TestWidget", {
+        defaults: function() {
+          return {alpha: "a", gamma: "g"};
+        }
+      });
+      
+      $(function() {
+        Widget.initializeAll();
+        runAllTests();
+      });
+
+      //
+      // Here are the tests
+      
+      function testWidgetNameForClassNameWorks() {
+        assertEquals("ohoa.foobar.WidgetX",
+                     Widget.nameForClass('widget widget-ohoa-foobar-WidgetX someOtherClass'));
+      }
+      
+      function testWidgetHasBeenInitialized() {
+        assertEquals(ohoa.TestWidget, $('#test-widget').widget().class);
+      }
+      
+      function testConfigIsMerged() {
+        var w = $('#test-widget').widget();
+        assertEquals('bar', w.config.alpha);
+        assertEquals('baz', w.config.beta);
+        assertEquals('g', w.config.gamma);
+      }
+      
+      
+      function assert(a) {
+        if (!a) {
+          alert("FAIL!");
+        }
+      }
+      
+      function assertEquals(a, b) {
+        assert(a == b);
+      }
+      
+      function runAllTests() {
+        for (var k in window) {
+          var v = window[k];
+          if (typeof v == 'function' && k.match(/^test/)) {
+            v();
+          }
+        }
+      }
+      
+    </script>
+  </head>
+  <body>
+    <div id='test-widget' class='widget widget-ohoa-TestWidget'>
+      <span class='config'>{alpha: "bar", beta: "baz"}</span>
+    </div>
+  </body>
+</html>

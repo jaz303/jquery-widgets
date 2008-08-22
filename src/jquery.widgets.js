@@ -64,15 +64,24 @@ Widget.initializeAll = function(container) {
     }
 };
 
+Widget.nameForClass = function(className) {
+    var match = /(^|\s)widget-([\w-]+)($|\s)/.exec(className);
+    if (match) {
+        return match[2].replace(/[-_]+/g, '.');
+    } else {
+        return null;
+    }
+};
+
 /**
  * Initialize a single widget rooted at a given element.
  */
 Widget.initializeOne = function(element) {
-    var match = /(^|\s)widget-([\w-]+)($|\s)/.test(element.className);
-    if (match) {
-        var wcn, wc = match[2].replace(/[-_]+/g, '.').split('.'), Base.OUTER_SCOPE;
+    var wcn = Widget.nameForClass(element.className);
+    if (wcn) {
+        var wcn = wcn.split('.'), wc = Base.OUTER_SCOPE;
         for (var i = 0; i < wcn.length; i++) {
-            if (!wc = wc[wcn[i]]) return null;
+            if (!(wc = wc[wcn[i]])) return null;
         }
         var config = {};
         jQuery('.config', element).each(function() {
