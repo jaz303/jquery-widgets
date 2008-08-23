@@ -9,10 +9,13 @@
       //
       // here's the scenario
       
+      var callCount = 0;
+      
       Widget.extend("ohoa.TestWidget", {
         defaults: function() {
           return {alpha: "a", gamma: "g"};
-        }
+        },
+        callTest: function() { callCount++; }
       });
       
       $(function() {
@@ -22,6 +25,11 @@
 
       //
       // Here are the tests
+      
+      function testWidgetClassForNameWorks() {
+        assertEquals("widget-ohoa-foobar-WidgetX",
+                     Widget.classForName('ohoa.foobar.WidgetX'));
+      }
       
       function testWidgetNameForClassNameWorks() {
         assertEquals("ohoa.foobar.WidgetX",
@@ -39,6 +47,11 @@
         assertEquals('g', w.config.gamma);
       }
       
+      function testSendingMethodsToWidgets() {
+        assertEquals(0, callCount);
+        Widget.send('ohoa.TestWidget', 'callTest');
+        assertEquals(2, callCount);
+      }
       
       function assert(a) {
         if (!a) {
@@ -64,6 +77,9 @@
   <body>
     <div id='test-widget' class='widget widget-ohoa-TestWidget'>
       <span class='config'>{alpha: "bar", beta: "baz"}</span>
+    </div>
+    <div class='widget widget-ohoa-TestWidget'>
+      <span class='config'>{}</span>
     </div>
   </body>
 </html>

@@ -48,6 +48,22 @@ Widget.get = function(ele) {
 };
 
 /**
+ * Call a method on every instance of a given widget.
+ * A respondTo() check is performed for each widget.
+ *
+ * @param widgetClassName fully-qualified class name of widget
+ * @param name of method to call
+ */
+Widget.send = function(widgetClassName, method) {
+    $('.' + Widget.classForName(widgetClassName)).each(function() {
+        var w = Widget.get(this);
+        if (w && w.respondTo(method)) {
+            w[method]();
+        }
+    });
+}
+
+/**
  * Initialize all widgets in a given container (default: document).
  * Call this from document.ready or whenever elements potentially containing
  * widgets are inserted into the DOM.
@@ -63,6 +79,10 @@ Widget.initializeAll = function(container) {
         }
     }
 };
+
+Widget.classForName = function(widgetName) {
+    return "widget-" + widgetName.replace(/\./g, '-');
+}
 
 Widget.nameForClass = function(className) {
     var match = /(^|\s)widget-([\w-]+)($|\s)/.exec(className);
