@@ -1,36 +1,27 @@
 /**
- * Simple class inheritance thingamabob. Wrote for luck.
- * (c) 2008 Jason Frame (jason@onehackoranother.com)
+ * Yet another JS class implementation.
+ * (c) 2008-9 Jason Frame (jason@onehackoranother.com)
  *
  * Usage:
  *
- * Base.extend("com.onehackoranother.Person", {
- *   init: function(name) { this.name = name; },
- *   greet: function() { alert("Hello, my name is " + this.getName()); },
- *   getName: function() { return this.name; }
- * });
+ * Class.extend("foo.Person", { init: function(name) { this.name = name; } });
+ * foo.Person.extend("foo.Captain");
  *
- * com.onehackoranother.Person.extend("com.onehackoranother.Manager", {
- *   getName: function() { return "Mr. " + this.super(arguments.callee, "getName"); }
- * });
- *
- * var p = com.onehackoranother.Manager.new("PHB");
- * p.greet(); // "Hello, my name is Mr. PHB"
- * alert(p.respondTo('greet')); // true
- * alert(p.respondTo('commonSense')); // false
+ * var b = new foo.Captain("Jason");
  *
  * Issues:
  * calls to super are not possible from mixed-in methods; not sure if this is
  * really a problem...
  */
 
-function Base() {};
+function Class() {};
 
-Base.OUTER_SCOPE = this; // == window !?!?
-Base.superClass = null;
+Class.OUTER_SCOPE = this;
+Class.NO_OP = {};
 
-Base.makeScope = function(scope) {
-	var at = Base.OUTER_SCOPE;
+Class.makeScope = function(scope) {
+	if (typeof scope == 'string') scope = scope.split('.');
+	var at = Class.OUTER_SCOPE;
 	for (var i = 0; i < scope.length; i++) {
 		if (!at[scope[i]]) at[scope[i]] = {};
 		at = at[scope[i]];
@@ -38,49 +29,78 @@ Base.makeScope = function(scope) {
 	return at;
 };
 
-Base.new = function() {
-	var instance = new this();
-	instance.class = this;
-	instance.init.apply(instance, arguments);
-	return instance;
+// Extend a class, creating a new class object
+// Returns class constructor.
+// If className (format: name.space.ClassName) is present, class constructor
+// will also assigned to corresponding symbol in global namespace.
+// methods is optional hash of functions to assign to prototype - these will
+// become instance methods. They will be modified, so best not to share them
+// with anything else.
+Class.extend = function(className, methods) {
+	
+	if (typeof className != 'string') {
+		methods = className;
+		className = null;
+	}
+	
+	var theClass = function(options) {
+		if (options != Class.NO_OP) {
+			this._class = arguments.callee;
+			this.init.apply(this, arguments);
+		}
+	};
+	
+	theClass._class = true;
+	theClass._super = this;
+	theClass.extend = this.extend;
+	theClass.mix    = this.mix;
+	theClass.append = this.append;
+	theClass.prototype = new this(Class.NO_OP);
+	
+	methods = methods || {};
+	for (var m in methods) theClass.append(m, methods[m]);
+	
+	if (className) {
+		var namespace = className.split('.'),
+			className = namespace.pop(),
+			scope = Class.makeScope(namespace);
+		scope[className] = theClass;
+	}
+	
+	return theClass;
+	
 };
 
-Base.prototype = {
+// Add something to this class' prototype
+// Functions assigned this way will be modified to support super() calls.
+Class.append = function(name, thing) {
+	if (typeof thing == 'function') {
+		thing.__symbol__ = name;
+		thing.__super__ = this._super;
+	}
+	this.prototype[name] = thing;
+};
+
+// Mix any number of objects into this class' prototype
+// Unlike functions added via append(), functions "mixed-in" will be left
+// unmodified to enable sharing between classes.
+Class.mix = function() {
+	for (var i = 0; i < arguments.length; i++) {
+		var mixin = arguments[i];
+		for (var m in mixin) {
+			this.prototype[m] = mixin[m];
+		}
+	}
+};
+
+Class.prototype = {
 	init: function() {},
-	super: function(callee, method) {
-		var args = [], i = 2;
+	super: function(callee) {
+		var args = [], i = 1;
 		while (i < arguments.length) args.push(arguments[i++]);
-		return callee.__super__.prototype[method].apply(this, args);
+		return callee.__super__.prototype[callee.__symbol__].apply(this, args);		
 	},
 	respondTo: function(method) {
 		return typeof this[method] == 'function';
 	}
-};
-
-Base.extend = function(className, methods) {
-
-	var namespace = className.split('.');
-	var className = namespace.pop();
-	var scope = Base.makeScope(namespace);
-	
-	var theClass = function() {};
-	theClass.superClass = this;
-	theClass.prototype = new this();
-	
-	methods = methods || {};
-	for (var m in methods) {
-		var tmp = methods[m];
-		if (typeof tmp == 'function') {
-			tmp.__super__ = this;
-		}
-		theClass.prototype[m] = tmp;
-	}
-	
-	theClass.extend = this.extend;
-	theClass.new = this.new;
-	
-	scope[className] = theClass;
-	
-	return theClass;
-
 };
