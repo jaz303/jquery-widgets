@@ -12,7 +12,7 @@ Class.extend('Widget', {
         try {
             this.dispose();
         } catch (dontCareAboutThis) {}
-        $.removeData(this.root, 'widget');
+        $.data(this.root, 'widget', false);
         this.root = null;
         this.$root = null;
     },
@@ -107,6 +107,11 @@ Widget.destroyAll = function() {
  * Initialize a single widget rooted at a given element.
  */
 Widget.initializeOne = function(element) {
+    
+    // check for existing or destroyed widget (false => destroyed)
+    var existing = $.data(element, 'widget');
+    if (existing || existing === false) return existing;
+    
     var wcn = Widget.nameForClass(element.className);
     if (wcn) {
         var wcn = wcn.split('.'), wc = Class.OUTER_SCOPE;
@@ -121,6 +126,7 @@ Widget.initializeOne = function(element) {
     } else {
         return null;
     }
+    
 };
 
 if (typeof jQuery != 'undefined') {
