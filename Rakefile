@@ -1,3 +1,6 @@
 task :test do
-  `js test.js`
+  Dir['test/unit/**/*.js'].each do |file|
+    puts "> #{file}"
+    sh "cd #{File.dirname(file)}; js #{File.basename(file)}"
+  end
 end

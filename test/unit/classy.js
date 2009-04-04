@@ -1,5 +1,5 @@
-load("src/classy.js");
-load("test-unit.js");
+load("../test-unit.js");
+load("../../src/classy.js");
 
 test({
 	
@@ -82,7 +82,7 @@ test({
 	
 	"test initializer is bypassed for class prototype": function() {
 		
-		var c = Class.create({
+		var c = Class.extend({
 			init: function() { this.foo = 10; }
 		});
 		
