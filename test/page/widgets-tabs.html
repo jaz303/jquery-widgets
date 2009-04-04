@@ -9,13 +9,11 @@
     
       Widget.extend('TabPane', {
         setup: function() {
-          var self = this;
-          self.$actuators = self.$root.find('ul.actuator li');
-          self.$actuators.click(function() {
-            self.$root.find('.panel').hide().eq(self.$actuators.index(this)).show();
+          var self = this, $act = self.$root.find('ul.actuator li');
+          $act.click(function() {
+            self.$root.find('.panel').hide().eq($act.index(this)).show();
             return false;
-          });
-          self.$actuators.eq(self.config.selectedIndex).click();
+          }).eq(self.config.selectedIndex).click();
         },
         defaults: function() {
           return {
