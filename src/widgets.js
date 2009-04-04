@@ -8,6 +8,15 @@ Class.extend('Widget', {
         this.setup();
     },
     
+    destroy: function() {
+        try {
+            this.dispose();
+        } catch (dontCareAboutThis) {}
+        $.removeData(this.root, 'widget');
+        this.root = null;
+        this.$root = null;
+    },
+    
     /**
 	 * Override to provide default configuration options.
 	 * Any of these may be overwritten by configuration options passed to
@@ -18,8 +27,13 @@ Class.extend('Widget', {
     /**
      * Implement custom Widget setup/initialisation logic here.
      */
-    setup: function() {}
+    setup: function() {},
     
+    /**
+     * Implement custom destruction logic here.
+     */
+    dispose: function() {}
+
 });
 
 /**
@@ -50,17 +64,41 @@ Widget.nameForClass = function(className) {
 };
 
 /**
- * Initialize all widgets in a given container (default: document).
+ * Given a root DOM node, returns an array of root widget nodes.
+ * Array elements will be organised such that it is safe to instantiate widgets
+ * in this order.
+ */
+Widget.findAllRoots = function(root) {
+    var q = [root], w = [], n = null;
+    while (n = q.pop()) {
+        if (n.className.match(/(?:\s|^)widget(?:\s|$)/)) {
+            w.unshift(n);
+        }
+        for (var i = 0; i < n.childNodes.length; i++) {
+            var c = n.childNodes[i];
+            if (c.nodeType == 1) q.push(n.childNodes[i]);
+        }
+    }
+    return w;
+};
+
+/**
+ * Initialize all widgets in a given container.
  * Call this from document.ready or whenever elements potentially containing
  * widgets are inserted into the DOM.
  */
 Widget.initializeAll = function(container) {
-    if ($(container).hasClass('widget')) {
-        Widget.initializeOne(container);
-    } else {
-        var widgets = $('.widget', container);
-        for (var i = 0; i < widgets.length; i++) {
-            Widget.initializeOne(widgets[i]);
+    var roots = Widget.findAllRoots(container);
+    for (var i = 0; i < roots.length; i++) {
+        Widget.initializeOne(roots[i]);
+    }
+};
+
+Widget.destroyAll = function() {
+    var roots = Widget.findAllRoots(document.body), w = null;
+    for (var i = 0; i < roots.length; i++) {
+        if (w = Widget.get(roots[i])) {
+            w.destroy();
         }
     }
 };
@@ -90,7 +128,10 @@ if (typeof jQuery != 'undefined') {
         return Widget.get(this[0]);
     };
     
-    $.rebind(function() {
-        Widget.initializeAll(document);
+    $.rebind(function(context) {
+        if (context == document) context = document.body;
+        Widget.initializeAll(context);
     });
+    
+    $(window).unload(Widget.destroyAll);
 }
