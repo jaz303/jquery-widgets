@@ -108,17 +108,17 @@ Widget.destroyAll = function() {
  */
 Widget.initializeOne = function(element) {
     
+    var existing = $.data(element, 'widget'), wcn, wc, config = {};
+    
     // check for existing or destroyed widget (false => destroyed)
-    var existing = $.data(element, 'widget');
     if (existing || existing === false) return existing;
     
-    var wcn = Widget.nameForClass(element.className);
-    if (wcn) {
-        var wcn = wcn.split('.'), wc = Class.OUTER_SCOPE;
+    if (wcn = Widget.nameForClass(element.className)) {
+        wcn = wcn.split('.');
+        wc = Class.OUTER_SCOPE;
         for (var i = 0; i < wcn.length; i++) {
             if (!(wc = wc[wcn[i]])) return null;
         }
-        var config = {};
         $('.widget-config', element).each(function() {
            $.extend(config, eval('(' + $(this).text() + ')')); 
         });
