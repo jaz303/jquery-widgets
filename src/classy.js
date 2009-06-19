@@ -95,7 +95,7 @@ Class.mix = function() {
 
 Class.prototype = {
 	init: function() {},
-	super: function(callee) {
+	supr: function(callee) {
 		var args = [], i = 1;
 		while (i < arguments.length) args.push(arguments[i++]);
 		return callee.__super__.prototype[callee.__symbol__].apply(this, args);		

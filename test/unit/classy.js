@@ -179,7 +179,7 @@ test({
 		
 		var e = d.extend({
 			getName: function() {
-				return 'Mr. ' + this.super(arguments.callee);
+				return 'Mr. ' + this.supr(arguments.callee);
 			}
 		});
 		
