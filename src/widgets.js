@@ -108,7 +108,7 @@ Widget.destroyAll = function() {
  */
 Widget.initializeOne = function(element) {
     
-    var existing = $.data(element, 'widget'), wcn, wc, config = {};
+    var existing = $.data(element, 'widget'), wcn, wc, config = {}, i;
     
     // check for existing or destroyed widget (false => destroyed)
     if (existing || existing === false) return existing;
@@ -116,12 +116,15 @@ Widget.initializeOne = function(element) {
     if (wcn = Widget.nameForClass(element.className)) {
         wcn = wcn.split('.');
         wc = Class.OUTER_SCOPE;
-        for (var i = 0; i < wcn.length; i++) {
+        for (i = 0; i < wcn.length; i++) {
             if (!(wc = wc[wcn[i]])) return null;
         }
-        $('.widget-config', element).each(function() {
-           $.extend(config, eval('(' + $(this).text() + ')')); 
-        });
+        for (i = 0; i < element.childNodes.length; i++) {
+            var child = element.childNodes[i];
+            if (child.nodeName == 'script' && child.type == 'text/javascript-widget-config') {
+                $.extend(config, (new Function(child.innerText))());
+            }
+        }
         return new wc(element, config);
     } else {
         return null;
