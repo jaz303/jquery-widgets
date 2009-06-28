@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>Drag-Drop Test</title>
+    <script type="text/javascript" charset="utf-8" src="../../assets/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../src/classy.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../../src/drag-drop.js"></script>
+    <script type="text/javascript">
+    
+      $(function() {
+        new Draggable(document.getElementById('draggable'), {handle: 'div'});
+      });
+    
+    </script>
+  </head>
+  <body>
+    
+    <div id='draggable' style='width:100px;height:100px;background:black;position:absolute;top:10px;left:10px'>
+      <div style='height:20px;background-color: #cdcdcd'>asd</div>
+    </div>
+    
+  </body>
+</html>
