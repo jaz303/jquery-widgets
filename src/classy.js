@@ -19,6 +19,27 @@ function Class() {};
 Class.OUTER_SCOPE = this;
 Class.NO_OP = {};
 
+Class.prototype = {
+	init: function(options) {
+	    this.handleOptions(options);
+	},
+	handleOptions: function(options) {
+	    var defaults = this.defaults();
+	    for (var k in defaults) this[k] = defaults[k];
+	    if (options)
+            for (var k in options) this[k] = options[k];
+    },
+	defaults: function() { return {}; },
+	supr: function(callee) {
+		var args = [], i = 1;
+		while (i < arguments.length) args.push(arguments[i++]);
+		return callee.__super__.prototype[callee.__symbol__].apply(this, args);		
+	},
+	respondTo: function(method) {
+		return typeof this[method] == 'function';
+	}
+};
+
 Class.makeScope = function(scope) {
 	if (typeof scope == 'string') scope = scope.split('.');
 	var at = Class.OUTER_SCOPE;
@@ -44,18 +65,19 @@ Class.extend = function(className, methods) {
 	}
 	
 	var theClass = function(options) {
-		if (options != Class.NO_OP) {
-			this._class = arguments.callee;
+	    if (options != Class.NO_OP) {
+	        this._class = this.constructor = arguments.callee;
 			this.init.apply(this, arguments);
 		}
 	};
 	
-	theClass._class = true;
-	theClass._super = this;
-	theClass.extend = this.extend;
-	theClass.mix    = this.mix;
-	theClass.append = this.append;
-	theClass.prototype = new this(Class.NO_OP);
+	theClass._class         = true;
+	theClass._super         = this;
+	theClass.extend         = this.extend;
+	theClass.mix            = this.mix;
+	theClass.append         = this.append;
+	theClass.prototype      = new this(Class.NO_OP);
+	theClass.constructor    = theClass;
 	
 	methods = methods || {};
 	for (var m in methods) theClass.append(m, methods[m]);
@@ -90,17 +112,5 @@ Class.mix = function() {
 		for (var m in mixin) {
 			this.prototype[m] = mixin[m];
 		}
-	}
-};
-
-Class.prototype = {
-	init: function() {},
-	supr: function(callee) {
-		var args = [], i = 1;
-		while (i < arguments.length) args.push(arguments[i++]);
-		return callee.__super__.prototype[callee.__symbol__].apply(this, args);		
-	},
-	respondTo: function(method) {
-		return typeof this[method] == 'function';
 	}
 };
