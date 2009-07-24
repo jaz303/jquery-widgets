@@ -8,7 +8,7 @@ Class.extend('Draggable', {
     },
     
     defaults: function() {
-        return { enabled: true, filter: null, axis: null };
+        return { enabled: true, filter: null, axis: null, handle: null };
     },
     
     enable: function() { this.enabled = true; },
@@ -41,16 +41,19 @@ Class.extend('Draggable', {
             
             $(self.root).addClass('dragging').css('zIndex', ScreenUtils.nextZ());
             
-            // hooks?
-            self._start(eo.pageX, eo.pageY);
-            $(document).bind('mousemove.drag-handler', function(ei) {
-                $(self.root).css(self._newPos(ei.pageX, ei.pageY));
-            });
+            // if (self._hook('beforeDrag')) {
+                self._start(eo.pageX, eo.pageY);
+                $(document).bind('mousemove.drag-handler', function(ei) {
+                    $(self.root).css(self._newPos(ei.pageX, ei.pageY));
+                });
+            // }
+            
         });
         
         $(document).mouseup(function() {
             self.$handle.removeClass('dragging');
             $(document).unbind('mousemove.drag-handler');
+            // self._hook('afterDrag');
         });
         
     },
