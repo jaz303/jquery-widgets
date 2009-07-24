@@ -15,6 +15,12 @@ Class.extend('Draggable', {
     disable: function() { this.enabled = false; },
     isEnabled: function() { return this.enabled; },
     
+    destroy: function() {
+        this.$handle.unbind('.draggable');
+        this.$handle = null;
+        this.root = null;
+    },
+    
     //
     // Private
     
@@ -32,10 +38,10 @@ Class.extend('Draggable', {
         
         var self = this;
         
-        this.$handle.bind('selectstart', function() { return false; })
-                    .attr('unselectable', 'on')
+        this.$handle.attr('unselectable', 'on')
                     .css('MozUserSelect', 'none')
-                    .mousedown(function(eo) {
+                    .bind('selectstart.draggable', function() { return false; })
+                    .bind('mousedown.draggable', function(eo) {
                         
             if (!self.enabled) return;
             
@@ -43,7 +49,7 @@ Class.extend('Draggable', {
             
             // if (self._hook('beforeDrag')) {
                 self._start(eo.pageX, eo.pageY);
-                $(document).bind('mousemove.drag-handler', function(ei) {
+                $(document).bind('mousemove.draggable', function(ei) {
                     $(self.root).css(self._newPos(ei.pageX, ei.pageY));
                 });
             // }
@@ -52,7 +58,7 @@ Class.extend('Draggable', {
         
         $(document).mouseup(function() {
             self.$handle.removeClass('dragging');
-            $(document).unbind('mousemove.drag-handler');
+            $(document).unbind('mousemove.draggable');
             // self._hook('afterDrag');
         });
         
