@@ -38,8 +38,9 @@ Class.extend('Draggable', {
                     .mousedown(function(eo) {
                         
             if (!self.enabled) return;
-                        
-            // to top?
+            
+            $(self.root).addClass('dragging').css('zIndex', ScreenUtils.nextZ());
+            
             // hooks?
             self._start(eo.pageX, eo.pageY);
             $(document).bind('mousemove.drag-handler', function(ei) {
@@ -48,6 +49,7 @@ Class.extend('Draggable', {
         });
         
         $(document).mouseup(function() {
+            self.$handle.removeClass('dragging');
             $(document).unbind('mousemove.drag-handler');
         });
         
