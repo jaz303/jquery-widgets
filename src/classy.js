@@ -14,22 +14,41 @@
  * really a problem...
  */
 
+var classy = {
+    OUTER_SCOPE:    this,
+    NO_OP:          {},
+    
+    makeScope: function(scope) {
+        if (typeof scope == 'string') scope = scope.split('.');
+    	var at = classy.OUTER_SCOPE;
+    	for (var i = 0; i < scope.length; i++) {
+    		if (!at[scope[i]]) at[scope[i]] = {};
+    		at = at[scope[i]];
+    	}
+    	return at;
+    },
+    
+    features: {
+        // append hash of instance methods to class
+        methods: function(klass, methodsHash) {
+            for (var k in methodsHash) {
+                klass.append(k, methodsHash[k]);
+            }
+        },
+        
+        // set the defaults for a class
+        // (this only applies to subclasses of Object)
+        // defaults may be either a hash or a function which returns a hash
+        defaults: function(klass, defaults) {
+            klass.defaults = defaults;
+        }
+    }
+};
+
 function Class() {};
 
-Class.OUTER_SCOPE = this;
-Class.NO_OP = {};
-
 Class.prototype = {
-	init: function(options) {
-	    this.handleOptions(options);
-	},
-	handleOptions: function(options) {
-	    var defaults = this.defaults();
-	    for (var k in defaults) this[k] = defaults[k];
-	    if (options)
-            for (var k in options) this[k] = options[k];
-    },
-	defaults: function() { return {}; },
+	init: function() {},
 	supr: function(callee) {
 		var args = [], i = 1;
 		while (i < arguments.length) args.push(arguments[i++]);
@@ -40,65 +59,57 @@ Class.prototype = {
 	}
 };
 
-Class.makeScope = function(scope) {
-	if (typeof scope == 'string') scope = scope.split('.');
-	var at = Class.OUTER_SCOPE;
-	for (var i = 0; i < scope.length; i++) {
-		if (!at[scope[i]]) at[scope[i]] = {};
-		at = at[scope[i]];
-	}
-	return at;
-};
-
 // Extend a class, creating a new class object
 // Returns class constructor.
 // If className (format: name.space.ClassName) is present, class constructor
 // will also assigned to corresponding symbol in global namespace.
-// methods is optional hash of functions to assign to prototype - these will
-// become instance methods. They will be modified, so best not to share them
-// with anything else.
-Class.extend = function(className, methods) {
+// features is optional hash of features to assign to the class via classy.features
+Class.extend = function(className, features) {
 	
 	if (typeof className != 'string') {
-		methods = className;
+		features = className;
 		className = null;
 	}
 	
-	var theClass = function(options) {
-	    if (options != Class.NO_OP) {
+	var klass = function(_) {
+	    if (_ != classy.NO_OP) {
 	        this._class = this.constructor = arguments.callee;
 			this.init.apply(this, arguments);
 		}
 	};
 	
-	theClass._class         = true;
-	theClass._super         = this;
-	theClass.extend         = this.extend;
-	theClass.mix            = this.mix;
-	theClass.append         = this.append;
-	theClass.prototype      = new this(Class.NO_OP);
-	theClass.constructor    = theClass;
+	klass._class        = true;
+	klass._superClass   = this;
+	klass.extend        = this.extend;
+	klass.mix           = this.mix;
+	klass.append        = this.append;
+	klass.prototype     = new this(classy.NO_OP);
+	klass.constructor   = klass;
 	
-	methods = methods || {};
-	for (var m in methods) theClass.append(m, methods[m]);
+    features = features || {};
+    for (var k in features) {
+        if (k in classy.features) {
+            classy.features[k](klass, features[k]);
+        }
+    }
 	
 	if (className) {
 		var namespace = className.split('.'),
 			className = namespace.pop(),
-			scope = Class.makeScope(namespace);
-		scope[className] = theClass;
+			scope = classy.makeScope(namespace);
+		scope[className] = klass;
 	}
 	
-	return theClass;
+	return klass;
 	
 };
 
 // Add something to this class' prototype
-// Functions assigned this way will be modified to support super() calls.
+// Functions assigned this way will be modified to support supr() calls.
 Class.append = function(name, thing) {
 	if (typeof thing == 'function') {
 		thing.__symbol__ = name;
-		thing.__super__ = this._super;
+		thing.__super__ = this._superClass;
 	}
 	this.prototype[name] = thing;
 };
@@ -114,3 +125,27 @@ Class.mix = function() {
 		}
 	}
 };
+
+Class.extend('Base', {
+    methods: {
+        init: function(options) {
+            this.options = this.parseOptions(options);
+        },
+        parseOptions: function(options) {
+            var stack = [options || {}], klass = this._class, options = {};
+            while (klass) {
+                if ('defaults' in klass) {
+                    var d = klass.defaults;
+                    if (typeof d == 'function') d = d.apply(this);
+                    stack.unshift(d);
+                }
+                klass = klass._superClass;
+            }
+            for (var i = 0; i < stack.length; i++) {
+                var x = stack[i];
+                for (var k in x) options[k] = x[k];
+            }
+            return options;
+        }
+    }
+});

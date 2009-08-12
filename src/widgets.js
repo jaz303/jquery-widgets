@@ -1,39 +1,41 @@
 Class.extend('Widget', {
     
-    init: function(root, config) {
-        this.root = root;
-        this.$root = $(root);
-        this.config = $.extend({}, this.defaults(), config || {});
-        $.data(this.root, 'widget', this);
-        this.setup();
-    },
-    
-    destroy: function() {
-        try {
-            this.dispose();
-        } catch (dontCareAboutThis) {}
-        $.data(this.root, 'widget', false);
-        this.root = null;
-        this.$root = null;
-    },
-    
-    /**
-	 * Override to provide default configuration options.
-	 * Any of these may be overwritten by configuration options passed to
-	 * the constructor.
-	 */
-    defaults: function() { return {}; },
-    
-    /**
-     * Implement custom Widget setup/initialisation logic here.
-     */
-    setup: function() {},
-    
-    /**
-     * Implement custom destruction logic here.
-     */
-    dispose: function() {}
+    methods: {
+        init: function(root, config) {
+            this.root = root;
+            this.$root = $(root);
+            this.config = $.extend({}, this.defaults(), config || {});
+            $.data(this.root, 'widget', this);
+            this.setup();
+        },
 
+        destroy: function() {
+            try {
+                this.dispose();
+            } catch (dontCareAboutThis) {}
+            $.data(this.root, 'widget', false);
+            this.root = null;
+            this.$root = null;
+        },
+
+        /**
+    	 * Override to provide default configuration options.
+    	 * Any of these may be overwritten by configuration options passed to
+    	 * the constructor.
+    	 */
+        defaults: function() { return {}; },
+
+        /**
+         * Implement custom Widget setup/initialisation logic here.
+         */
+        setup: function() {},
+
+        /**
+         * Implement custom destruction logic here.
+         */
+        dispose: function() {}
+        
+    }
 });
 
 /**
@@ -115,7 +117,7 @@ Widget.initializeOne = function(element) {
     
     if (wcn = Widget.nameForClass(element.className)) {
         wcn = wcn.split('.');
-        wc = Class.OUTER_SCOPE;
+        wc = classy.OUTER_SCOPE;
         for (i = 0; i < wcn.length; i++) {
             if (!(wc = wc[wcn[i]])) return null;
         }

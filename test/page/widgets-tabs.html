@@ -8,20 +8,22 @@
     <script type="text/javascript">
     
       Widget.extend('TabPane', {
-        setup: function() {
-          var self = this, $act = self.$root.find('ul.actuator li');
-          $act.click(function() {
-            self.$root.find('.panel').hide().eq($act.index(this)).show();
-            return false;
-          }).eq(self.config.selectedIndex).click();
-        },
-        defaults: function() {
-          return {
-            selectedIndex: 0
-          };
-        },
-        dispose: function() {
-          alert('tab bar destroyed');
+        methods: {
+          setup: function() {
+            var self = this, $act = self.$root.find('ul.actuator li');
+            $act.click(function() {
+              self.$root.find('.panel').hide().eq($act.index(this)).show();
+              return false;
+            }).eq(self.config.selectedIndex).click();
+          },
+          defaults: function() {
+            return {
+              selectedIndex: 0
+            };
+          },
+          dispose: function() {
+            alert('tab bar destroyed');
+          }
         }
       });
     
