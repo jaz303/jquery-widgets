@@ -4,10 +4,10 @@
  *
  * Usage:
  *
- * Class.extend("foo.Person", { init: function(name) { this.name = name; } });
+ * Class.extend("foo.Person", { methods: { init: function(name) { this.name = name; } } });
  * foo.Person.extend("foo.Captain");
  *
- * var b = new foo.Captain("Jason");
+ * var captainJason = new foo.Captain("Jason");
  *
  * Issues:
  * calls to super are not possible from mixed-in methods; not sure if this is
@@ -37,7 +37,7 @@ var classy = {
         },
         
         // set the defaults for a class
-        // (this only applies to subclasses of Object)
+        // (this only applies to subclasses of Base)
         // defaults may be either a hash or a function which returns a hash
         defaults: function(klass, defaults) {
             klass.defaults = defaults;
@@ -126,6 +126,9 @@ Class.mix = function() {
 	}
 };
 
+// Base is a more heavyweight class with support for inherited default options.
+// In the future this will probably be expanded to support key-value-observing and
+// event firing.
 Class.extend('Base', {
     methods: {
         init: function(options) {
